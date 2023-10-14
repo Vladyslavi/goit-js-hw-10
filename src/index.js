@@ -1,85 +1,64 @@
+import { fetchBreeds, fetchCatByBreed } from './cat-api';
 import SlimSelect from 'slim-select';
 import 'slim-select/dist/slimselect.css';
-import { fetchBreeds, fetchCatByBreed } from './cat-api.js';
-import { Loading } from 'notiflix/build/notiflix-loading-aio';
 import { Notify } from 'notiflix/build/notiflix-notify-aio';
 
-const refs = {
-    select: document.querySelector('.breed-select'),
-    loader: document.querySelector('.loader'),
-    err: document.querySelector('.error'),
-    catCard: document.querySelector('.cat-info'),
+const elements = {
+    selectEl: document.querySelector('.breed-select'),
+    textMarkEl: document.querySelector('.cat-info'),
+    loaderEl: document.querySelector('.loader'),
+    errorEl: document.querySelector('.error'),
 };
 
-refs.loader.style.display = 'none';
-refs.err.style.display = 'none';
-refs.select.style.display = 'none';
-refs.catCard.style.display = 'none';
+const { selectEl, textMarkEl, loaderEl, errorEl } = elements;
 
-Loading.dots({
-    svgColor: '#5897fb',
-    svgSize: '130px',
-    messageFontSize: '30px',
-});
+loaderEl.classList.replace('loader', 'is-hidden');
 
-fetchBreeds()
-    .then(data => {
-        refs.select.style.display = 'flex';
-        refs.loader.style.display = 'none';
 
-        createMarkupOptins(data);
-        new SlimSelect({
-            select: refs.select,
-        });
-    })
-    .catch(err => {
-        Notify.failure(refs.err.textContent);
-    })
-    .finally(result => Loading.remove());
+selectEl.addEventListener('change', createMarkUp);
 
-function createMarkupOptins(arr) {
-    return arr
-        .map(({ id, name }) => {
-            console.log({ id, name });
+updateSelect();
 
-            const option = `<option value=${id}>${name}</option>`;
-            refs.select.insertAdjacentHTML('beforeend', option);
+function updateSelect(data) {
+    fetchBreeds(data)
+        .then(data => {
+            loaderEl.classList.replace('loader', 'is-hidden');
+
+            let markSelect = data.map(({ name, id }) => {
+                return `<option value ='${id}'>${name}</option>`;
+            });
+            selectEl.insertAdjacentHTML('beforeend', markSelect);
+            new SlimSelect({
+                select: selectEl,
+            });
         })
-        .join('');
+        .catch(onFetchError);
 }
 
-refs.select.addEventListener('change', e => {
-    const id = e.target.value;
+function createMarkUp(event) {
+    loaderEl.classList.replace('is-hidden', 'loader');
+    selectEl.classList.add('is-hidden');
+    textMarkEl.classList.add('is-hidden');
 
-    Loading.dots({
-        svgColor: '#5897fb',
-        svgSize: '130px',
-        messageFontSize: '30px',
-    });
+    const breedId = event.currentTarget.value;
 
-    fetchCatByBreed(id)
-        .then(catInfo => {
-            refs.catCard.style.display = 'flex';
-            createMarkupCards(catInfo);
+    fetchCatByBreed(breedId)
+        .then(data => {
+            loaderEl.classList.replace('loader', 'is-hidden');
+            selectEl.classList.remove('is-hidden');
+            const { url, breeds } = data[0];
+
+            textMarkEl.innerHTML = `<img src="${url}" alt="${breeds[0].name}" width="400"/><div class="box"><h2>${breeds[0].name}</h2><p>${breeds[0].description}</p><p><strong>Temperament:</strong> ${breeds[0].temperament}</p></div>`;
+            textMarkEl.classList.remove('is-hidden');
         })
-        .catch(err => {
-            Notify.failure(refs.err.textContent);
-        })
-        .finally(result => Loading.remove());
-});
+        .catch(onFetchError);
+}
 
-function createMarkupCards(data) {
-    const {
-        breeds: { name, description, temperament },
-        url,
-    } = data;
+function onFetchError() {
+    selectEl.classList.remove('is-hidden');
+    loaderEl.classList.replace('loader', 'is-hidden');
 
-    const card = ` 
-      <img class="cat-img" src="${url}" alt="${name}"  >
-       <div class="cat-right">
-      <h1 class="name">${name}</h1>
-      <p class="description">${description}</p>
-      <p class="temperament"><span class="temperament-span">Temperament:</span> ${temperament}</p>    
-      </div>`;
-    refs.catCard.innerHTML = card;
+    Notify.failure(
+        'Oops! Something went wrong! Try reloading the page or select another cat breed!'
+    );
 }
