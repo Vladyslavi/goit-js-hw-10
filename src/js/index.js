@@ -12,28 +12,27 @@ const elements = {
 
 const { selectEl, textMarkEl, loaderEl, errorEl } = elements;
 
-loaderEl.classList.replace('loader', 'is-hidden');
+loaderEl.classList.replace('is-hidden', 'loader');
 
 
-selectEl.addEventListener('change', createMarkUp);
+selectEl.classList.add('is-hidden');
 
 updateSelect();
 
-function updateSelect(data) {
-    fetchBreeds(data)
-        .then(data => {
-            loaderEl.classList.replace('loader', 'is-hidden');
+fetchBreeds(data)
+    .then(data => {
+        loaderEl.classList.replace('loader', 'is-hidden');
 
-            let markSelect = data.map(({ name, id }) => {
-                return `<option value ='${id}'>${name}</option>`;
-            });
-            selectEl.insertAdjacentHTML('beforeend', markSelect);
-            new SlimSelect({
-                select: selectEl,
-            });
-        })
-        .catch(onFetchError);
-}
+        let markSelect = data.map(({ name, id }) => {
+            return `<option value ='${id}'>${name}</option>`;
+        });
+        selectEl.insertAdjacentHTML('beforeend', markSelect);
+        new SlimSelect({
+            select: selectEl,
+        });
+    })
+    .catch(onFetchError);
+
 
 function createMarkUp(event) {
     loaderEl.classList.replace('is-hidden', 'loader');
