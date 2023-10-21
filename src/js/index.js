@@ -56,7 +56,7 @@ function createMarkUp(event) {
 }
 
 function onFetchError() {
-    selectEl.classList.remove('is-hidden');
+    // selectEl.classList.remove('is-hidden');
     loaderEl.classList.replace('loader', 'is-hidden');
 
     Notify.failure(
