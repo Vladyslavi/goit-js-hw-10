@@ -21,14 +21,15 @@ selectEl.addEventListener('change', createMarkUp);
 updateSelect();
 
 function updateSelect(data) {
+    loaderEl.classList.replace('is-hidden', 'loader');
     fetchBreeds(data)
         .then(data => {
-            loaderEl.classList.replace('loader', 'is-hidden');
 
             let markSelect = data.map(({ name, id }) => {
                 return `<option value ='${id}'>${name}</option>`;
             });
             selectEl.insertAdjacentHTML('beforeend', markSelect);
+            loaderEl.classList.replace('loader', 'is-hidden');
             new SlimSelect({
                 select: selectEl,
             });
